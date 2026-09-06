@@ -12,6 +12,7 @@ Stores and queries:
   7. Digital Screening Audit Logs
 """
 
+import os
 import sqlite3
 from pathlib import Path
 import json
@@ -19,13 +20,31 @@ from datetime import datetime, date
 from typing import Dict, Any, Optional, List, Tuple
 import hashlib
 
-DB_PATH = Path(__file__).resolve().parent.parent.parent / "border_control.db"
+def _resolve_db_path() -> Path:
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+        return Path("/tmp/border_control.db")
+    local_path = Path(__file__).resolve().parent.parent.parent / "border_control.db"
+    try:
+        # Check if writable
+        if not local_path.exists():
+            local_path.touch()
+        return local_path
+    except Exception:
+        return Path("/tmp/border_control.db")
+
+DB_PATH = _resolve_db_path()
 
 
 def get_db_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(DB_PATH))
+    global DB_PATH
+    try:
+        conn = sqlite3.connect(str(DB_PATH))
+    except Exception:
+        DB_PATH = Path("/tmp/border_control.db")
+        conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     return conn
+
 
 
 def init_database():

@@ -41,8 +41,15 @@ from run_pipeline import (
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 UPLOAD_DIR = OUT_DIR / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-init_database()
+try:
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
+
+try:
+    init_database()
+except Exception:
+    pass
 
 DEMO_SUITE = {}
 
@@ -58,11 +65,16 @@ def create_app():
 
     global DEMO_SUITE
     if not DEMO_SUITE:
-        DEMO_SUITE = generate_all_demo_specimens()
+        try:
+            DEMO_SUITE = generate_all_demo_specimens()
+        except Exception as e:
+            print("Notice: Specimen generation deferred/failed:", e)
+            DEMO_SUITE = {}
 
     @app.route("/")
     def index():
         return render_template("index.html")
+
 
     @app.route("/sw.js")
     def service_worker():
