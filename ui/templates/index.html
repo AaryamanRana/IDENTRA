@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>AI Based Fake Identity &amp; Document Screening System — MEA / UIDAI / BOI</title>
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DocScreen">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    /* ================================================================
+       SHARED BASE
+    ================================================================ */
+    :root {
+      --primary-blue: #2563eb; --primary-blue-hover: #1d4ed8; --primary-blue-light: #eff6ff;
+      --primary-blue-border: #bfdbfe; --accent-teal: #0d9488; --accent-mint: #10b981;
+      --accent-amber: #f59e0b; --accent-rose: #ef4444;
+      --bg-canvas: #f8fafc; --card-bg: #ffffff; --card-border: #e2e8f0;
+      --card-border-subtle: #edf2f7; --card-shadow: 0 4px 20px -2px rgba(0,0,0,.04),0 2px 6px -1px rgba(0,0,0,.02);
+      --text-heading: #0f172a; --text-body: #334155; --text-muted: #64748b; --text-dim: #94a3b8;
+      --verdict-green-bg:#f0fdf4; --verdict-green-border:#bbf7d0; --verdict-green-text:#15803d;
+      --verdict-yellow-bg:#fffbeb; --verdict-yellow-border:#fde68a; --verdict-yellow-text:#b45309;
+      --verdict-red-bg:#fef2f2; --verdict-red-border:#fecaca; --verdict-red-text:#b91c1c;
+      --verdict-neutral-bg:#f8fafc; --verdict-neutral-border:#e2e8f0; --verdict-neutral-text:#1e293b;
+      /* Mobile */
+      --mob-nav-h: 58px; --mob-tab-h: 66px;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    /* ================================================================
+       LAYOUT BREAKPOINTS (CSS FIRST)
+    ================================================================ */
+    @media (min-width: 768px) {
+      #desktopApp { display: block !important; }
+      #mobileApp { display: none !important; }
+    }
+    @media (max-width: 767.98px) {
+      #desktopApp { display: none !important; }
+      #mobileApp { display: flex !important; }
+    }
+
+    /* ================================================================
+       DESKTOP STYLES (Original dashboard — unchanged)
+    ================================================================ */
+    #desktopApp body, #desktopApp {
+      background-color: var(--bg-canvas); color: var(--text-body);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .light-navbar { background:#ffffff; border-bottom:1px solid var(--card-border); padding:14px 28px; box-shadow:0 1px 3px rgba(0,0,0,.02); }
+    .brand-shield-badge { width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;box-shadow:0 4px 12px rgba(37,99,235,.25);flex-shrink:0; }
+    .brand-title { font-size:1.05rem;font-weight:800;letter-spacing:.2px;color:var(--text-heading);line-height:1.2; }
+    .brand-subtitle { font-size:.74rem;font-weight:600;color:var(--text-muted);letter-spacing:.3px;margin-top:2px; }
+    .telemetry-chip { background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9999px;padding:3px 12px;font-size:.72rem;font-weight:700;color:#16a34a;display:inline-flex;align-items:center;gap:6px; }
+    .live-dot-green { width:6px;height:6px;border-radius:50%;background:#16a34a;box-shadow:0 0 6px #16a34a;animation:live-pulse 2s infinite ease-in-out; }
+    @keyframes live-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(1.3)} }
+    .light-card { background:var(--card-bg);border:1px solid var(--card-border);border-radius:18px;box-shadow:var(--card-shadow);transition:all .2s ease; }
+    .light-card-header { background:#fff;border-bottom:1px solid var(--card-border-subtle);padding:16px 20px;border-top-left-radius:18px;border-top-right-radius:18px;font-weight:700;font-size:.9rem;color:var(--text-heading);display:flex;justify-content:space-between;align-items:center; }
+    .btn-pill-action { background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);border:1px solid rgba(37,99,235,.2);border-radius:9999px;color:#fff;font-weight:700;font-size:.88rem;padding:11px 24px;letter-spacing:.3px;box-shadow:0 4px 14px rgba(37,99,235,.28);transition:all .2s ease;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%; }
+    .btn-pill-action:hover,.btn-pill-action:focus { background:linear-gradient(135deg,#1d4ed8 0%,#1e40af 100%);box-shadow:0 6px 20px rgba(37,99,235,.38);color:#fff;transform:translateY(-1px); }
+    .btn-pill-nav { background:#fff;border:1px solid var(--card-border);border-radius:9999px;color:var(--text-body);font-weight:600;font-size:.82rem;padding:8px 18px;transition:all .2s ease;box-shadow:0 1px 2px rgba(0,0,0,.02); }
+    .btn-pill-nav:hover { background:#f8fafc;border-color:#cbd5e1;color:#0f172a; }
+    .form-control-light,.form-select-light { background-color:#fff;border:1px solid var(--card-border);border-radius:10px;color:#1e293b;font-size:.84rem;padding:9px 13px;transition:all .2s ease; }
+    .form-control-light:focus,.form-select-light:focus { background-color:#fff;border-color:var(--primary-blue);color:#0f172a;box-shadow:0 0 0 3px rgba(37,99,235,.12);outline:none; }
+    .form-label-light { font-size:.72rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px; }
+    .specimen-btn { background:#fff;border:1px solid var(--card-border);border-radius:12px;color:#334155;padding:10px 14px;margin-bottom:7px;font-size:.82rem;font-weight:600;text-align:left;transition:all .2s ease;display:flex;justify-content:space-between;align-items:center;width:100%; }
+    .specimen-btn:hover { background:#f8fafc;border-color:var(--primary-blue);color:var(--primary-blue);transform:translateX(2px); }
+    .specimen-btn.active { background:#eff6ff;border-color:var(--primary-blue);color:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,.12); }
+    .hud-light-card { background:#fff;border:1px solid var(--card-border);border-radius:18px;padding:20px;box-shadow:var(--card-shadow); }
+    .score-value-big { font-size:2.6rem;font-weight:800;line-height:1;letter-spacing:-.5px;color:var(--primary-blue); }
+    .verdict-banner { border-radius:14px;padding:16px 20px;font-weight:700;font-size:.94rem;transition:all .2s ease;display:flex;align-items:center; }
+    .verdict-neutral { background:#f8fafc;border:1px solid #e2e8f0;color:#334155; }
+    .verdict-green   { background:var(--verdict-green-bg);border:1px solid var(--verdict-green-border);color:var(--verdict-green-text); }
+    .verdict-yellow  { background:var(--verdict-yellow-bg);border:1px solid var(--verdict-yellow-border);color:var(--verdict-yellow-text); }
+    .verdict-red     { background:var(--verdict-red-bg);border:1px solid var(--verdict-red-border);color:var(--verdict-red-text); }
+    .light-tabs { background:#fff;padding:0 8px;border-bottom:1px solid var(--card-border);display:flex;gap:8px; }
+    .light-tabs .nav-link { color:#64748b;border:none;border-bottom:2px solid transparent;border-radius:0;padding:12px 18px;font-weight:600;font-size:.84rem;transition:all .2s ease;background:transparent;display:inline-flex;align-items:center;gap:8px; }
+    .light-tabs .nav-link:hover { color:#0f172a; }
+    .light-tabs .nav-link.active { color:#2563eb;border-bottom:2px solid #2563eb;font-weight:700;background:transparent; }
+    .table-viz-clean { width:100%;border-collapse:separate;border-spacing:0 6px; }
+    .table-viz-clean th { background:#f8fafc;border:1px solid #e2e8f0;border-right:none;border-top-left-radius:8px;border-bottom-left-radius:8px;color:#475569;font-size:.78rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:10px 14px;width:40%; }
+    .table-viz-clean td { background:#fff;border:1px solid #e2e8f0;border-left:none;border-top-right-radius:8px;border-bottom-right-radius:8px;color:#0f172a;font-weight:600;font-size:.84rem;padding:10px 14px; }
+    .table-viz-clean tr:hover th { background:#f1f5f9; }
+    .table-viz-clean tr:hover td { background:#f8fafc; }
+    .mrz-terminal-clean { background-color:#0f172a;border:1px solid #334155;color:#38bdf8;font-family:'JetBrains Mono',monospace;font-size:1.02rem;letter-spacing:2px;padding:16px;border-radius:12px;line-height:1.7;word-break:break-all; }
+    .preview-box-dashed { background-color:#f8fafc;border:2px dashed #cbd5e1;border-radius:14px;padding:16px;display:flex;align-items:center;justify-content:center;min-height:280px; }
+    .heatmap-clean-img { width:100%;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;min-height:130px;object-fit:contain;transition:transform .2s ease,border-color .2s ease; }
+    .heatmap-clean-img:hover { transform:scale(1.02);border-color:#2563eb; }
+    .badge-pill-soft { padding:4px 10px;border-radius:9999px;font-size:.72rem;font-weight:700;letter-spacing:.3px; }
+    .quick-stat-light { background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;text-align:center;transition:all .2s ease; }
+    .quick-stat-light:hover { background:#eff6ff;border-color:#bfdbfe; }
+    .quick-stat-title { font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#64748b; }
+    .quick-stat-val { font-size:.82rem;font-weight:700;margin-top:4px; }
+    .modal-content-light { background:#fff;border:1px solid var(--card-border);border-radius:18px;box-shadow:0 20px 40px -10px rgba(0,0,0,.15); }
+    #gandhiIntroOverlay { position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s ease; }
+    .gandhi-modal-card { background:#fff;border:1px solid #e2e8f0;border-radius:24px;box-shadow:0 25px 60px -15px rgba(0,0,0,.25);padding:36px 44px;max-width:660px;width:90%;text-align:center;position:relative; }
+    .gandhi-art-box { width:180px;height:180px;margin:0 auto 20px;border-radius:20px;border:2px solid #bfdbfe;box-shadow:0 10px 25px rgba(37,99,235,.12);overflow:hidden;background:#fff; }
+    .gandhi-quote-text { font-size:1.05rem;line-height:1.6;color:#1e293b;font-weight:500;font-style:italic;margin-bottom:12px; }
+    .gandhi-author-text { font-size:.92rem;font-weight:700;color:#2563eb;letter-spacing:.4px; }
+    .intro-progress-bar-light { height:4px;background:#e2e8f0;border-radius:9999px;overflow:hidden;margin-top:24px;margin-bottom:20px; }
+    .intro-progress-fill-light { height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#0d9488);border-radius:9999px;transition:width 2.2s ease-in-out; }
+
+    /* ================================================================
+       MOBILE STYLES (PWA)
+    ================================================================ */
+    #mobileApp {
+      display: none; /* JS will show/hide */
+      flex-direction: column;
+      height: 100dvh;
+      background: #f1f5f9;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    /* Mobile Top Nav */
+    .mob-nav {
+      background: white; border-bottom: 1px solid #e2e8f0;
+      height: var(--mob-nav-h); display: flex; align-items: center;
+      padding: 0 16px; gap: 10px; flex-shrink: 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    .mob-brand-badge { width:34px;height:34px;background:linear-gradient(135deg,#2563eb,#1d4ed8);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-size:.95rem;flex-shrink:0;box-shadow:0 3px 8px rgba(37,99,235,.3); }
+    .mob-brand-name { font-weight:800;font-size:.88rem;color:#0f172a;line-height:1.2; }
+    .mob-brand-sub  { font-size:.62rem;color:#64748b;font-weight:600; }
+    .mob-live-chip  { background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9999px;padding:3px 9px;font-size:.62rem;font-weight:700;color:#16a34a;display:flex;align-items:center;gap:4px;flex-shrink:0; }
+    .mob-live-dot   { width:5px;height:5px;border-radius:50%;background:#16a34a;box-shadow:0 0 5px #16a34a;animation:live-pulse 2s infinite; }
+    .mob-icon-btn   { background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 9px;font-size:.82rem;color:#64748b;cursor:pointer;flex-shrink:0; }
+
+    /* Mobile Content */
+    .mob-content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+    .mob-page { display:none; padding:14px 14px calc(var(--mob-tab-h) + env(safe-area-inset-bottom,0px) + 14px); }
+    .mob-page.active { display:block; }
+
+    /* Shared card component */
+    .m-card { background:white;border:1px solid #e2e8f0;border-radius:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.04);overflow:hidden; }
+    .m-card-head { padding:12px 15px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:.87rem;font-weight:700;color:#0f172a;user-select:none;gap:8px; }
+    .m-card-head .mch-left { display:flex;align-items:center;gap:8px; }
+    .m-card-head .mchev { color:#94a3b8;font-size:.75rem;transition:transform .2s; }
+    .m-card-head.open .mchev { transform:rotate(180deg); }
+    .m-card-body { padding:13px 15px;border-top:1px solid #e2e8f0; }
+
+    /* Verdict hero */
+    .mob-verdict { border-radius:16px;padding:16px;background:white;border:1px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.06);margin-bottom:12px;transition:all .3s ease; }
+    .mob-verdict.green  { background:#f0fdf4;border-color:#86efac; }
+    .mob-verdict.yellow { background:#fffbeb;border-color:#fcd34d; }
+    .mob-verdict.red    { background:#fef2f2;border-color:#fca5a5; }
+    .mv-top { display:flex;align-items:center;gap:12px; }
+    .mv-icon { font-size:1.9rem;flex-shrink:0; }
+    .mv-title { font-size:.94rem;font-weight:800;color:#0f172a;line-height:1.2; }
+    .mv-sub   { font-size:.73rem;color:#64748b;margin-top:2px; }
+    .mv-ring  { position:relative;width:68px;height:68px;flex-shrink:0;margin-left:auto; }
+    .mv-ring svg { transform:rotate(-90deg);display:block; }
+    .mv-ring-in { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;line-height:1; }
+    .mv-score { font-size:1.1rem;font-weight:800;color:#0f172a; }
+    .mv-slbl  { font-size:.48rem;font-weight:700;color:#64748b;text-transform:uppercase; }
+    .mob-tags { display:flex;flex-wrap:wrap;gap:5px;margin-top:10px; }
+    .mob-pill { display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:9999px;font-size:.7rem;font-weight:700; }
+    .mp-green  { background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0; }
+    .mp-red    { background:#fef2f2;color:#dc2626;border:1px solid #fecaca; }
+    .mp-yellow { background:#fffbeb;color:#d97706;border:1px solid #fde68a; }
+    .mp-blue   { background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe; }
+    .mp-gray   { background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0; }
+
+    /* Stat chips */
+    .mob-chips { display:flex;gap:7px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none; }
+    .mob-chips::-webkit-scrollbar { display:none; }
+    .mob-chip { background:white;border:1px solid #e2e8f0;border-radius:10px;padding:8px 11px;flex-shrink:0;min-width:78px; }
+    .mch-lbl { font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#64748b; }
+    .mch-val { font-size:.78rem;font-weight:800;color:#0f172a;margin-top:2px; }
+
+    /* Upload zone */
+    .mob-upload { border:2px dashed #e2e8f0;border-radius:12px;padding:18px 12px;text-align:center;background:#f8fafc;cursor:pointer;position:relative;transition:all .2s; }
+    .mob-upload.filled { border-color:#2563eb;background:#eff6ff; }
+    .mob-upload input[type="file"] { position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%; }
+    .mob-upload-icon { font-size:1.7rem;margin-bottom:5px; }
+    .mob-upload-lbl  { font-size:.82rem;font-weight:700;color:#0f172a; }
+    .mob-upload-sub  { font-size:.7rem;color:#64748b;margin-top:2px; }
+    .mob-upload-prev { width:100%;border-radius:10px;border:1px solid #e2e8f0;object-fit:contain;max-height:160px;margin-top:9px;background:#f8fafc; }
+    .mob-cam-row { display:flex;gap:8px;margin-top:7px; }
+    .mob-cam-btn { flex:1;padding:10px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:.79rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px; }
+    .mob-cam-rear  { background:#eff6ff;border-color:#bfdbfe;color:#2563eb; }
+    .mob-cam-front { background:#f0fdf4;border-color:#bbf7d0;color:#16a34a; }
+
+    /* Primary button */
+    .mob-btn-primary { width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;font-weight:800;font-size:.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,.28);display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;font-family:inherit; }
+    .mob-btn-primary:active { transform:scale(.98); }
+    .mob-btn-primary:disabled { opacity:.55; }
+    .mob-btn-teal  { background:linear-gradient(135deg,#0d9488,#0f766e);box-shadow:0 4px 14px rgba(13,148,136,.25); }
+    .mob-btn-slate { background:linear-gradient(135deg,#475569,#334155);box-shadow:none; }
+
+    /* Form */
+    .mob-label { font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#64748b;margin-bottom:5px;display:block; }
+    .mob-ctrl  { width:100%;padding:11px 13px;background:white;border:1px solid #e2e8f0;border-radius:10px;font-size:.86rem;color:#0f172a;font-family:inherit;-webkit-appearance:none;appearance:none; }
+    .mob-ctrl:focus { outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+
+    /* Info rows */
+    .mob-info-row { display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #e2e8f0;font-size:.83rem;gap:10px; }
+    .mob-info-row:last-child { border-bottom:none; }
+    .mob-ik { color:#64748b;font-weight:600;flex-shrink:0; }
+    .mob-iv { font-weight:700;color:#0f172a;text-align:right; }
+
+    /* VIZ table */
+    .mob-viz { width:100%;border-collapse:collapse; }
+    .mob-viz tr { border-bottom:1px solid #e2e8f0; }
+    .mob-viz tr:last-child { border-bottom:none; }
+    .mob-viz th { padding:9px 11px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#64748b;background:#f8fafc;width:36%;text-align:left;vertical-align:top; }
+    .mob-viz td { padding:9px 11px;font-size:.82rem;font-weight:600;color:#0f172a;vertical-align:top; }
+
+    /* MRZ terminal */
+    .mob-mrz { background:#0f172a;border-radius:11px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:.74rem;color:#38bdf8;letter-spacing:1.4px;line-height:1.8;word-break:break-all;overflow-x:auto; }
+
+    /* Heatmap grid */
+    .mob-hm-grid { display:grid;grid-template-columns:1fr 1fr;gap:9px; }
+    .mob-hm-lbl { font-size:.67rem;font-weight:700;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px; }
+    .mob-hm-img { width:100%;border-radius:9px;border:1px solid #e2e8f0;min-height:80px;object-fit:contain;background:#f8fafc; }
+
+    /* Specimen item */
+    .mob-spec { display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:11px;cursor:pointer;border:1px solid transparent;margin-bottom:5px;background:#f8fafc;transition:all .15s; }
+    .mob-spec.active { background:#eff6ff;border-color:#bfdbfe; }
+    .mob-spec-dot { width:28px;height:28px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0; }
+    .mob-spec-name { font-size:.8rem;font-weight:700;color:#0f172a; }
+    .mob-spec-type { font-size:.67rem;color:#64748b; }
+
+    /* Bottom tab bar */
+    #mobTabBar {
+      background:white; border-top:1px solid #e2e8f0;
+      height: var(--mob-tab-h);
+      flex-shrink:0; display:flex; box-shadow:0 -4px 20px rgba(0,0,0,.06);
+      padding-bottom:env(safe-area-inset-bottom,0px);
+    }
+    .mob-tab { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;padding:6px 4px;transition:all .15s; }
+    .mob-tab-icon { font-size:1.05rem;color:#94a3b8;transition:color .15s; }
+    .mob-tab-lbl  { font-size:.58rem;font-weight:700;color:#94a3b8;letter-spacing:.15px; }
+    .mob-tab.active .mob-tab-icon { color:#2563eb; }
+    .mob-tab.active .mob-tab-lbl  { color:#2563eb; }
+    .mob-fab-wrap { flex:1;display:flex;align-items:center;justify-content:center; }
+    .mob-fab { width:50px;height:50px;border-radius:15px;background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,99,235,.4);cursor:pointer;color:white;font-size:1.15rem;margin-bottom:6px;transition:transform .15s; }
+    .mob-fab:active { transform:scale(.91); }
+
+    /* Empty state */
+    .mob-empty { text-align:center;padding:28px 12px;color:#64748b; }
+    .mob-empty .mei { font-size:2rem;margin-bottom:8px; }
+    .mob-empty p { font-size:.82rem;line-height:1.5; }
+
+    /* Install banner */
+    .mob-install { background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:11px 13px;display:none;align-items:center;gap:9px;margin-bottom:12px; }
+    .mob-inst-txt { flex:1;font-size:.78rem;color:#2563eb;font-weight:600; }
+    .mob-inst-btn { background:#2563eb;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:.75rem;font-weight:700;cursor:pointer; }
+    .mob-inst-x   { background:none;border:none;color:#64748b;cursor:pointer;font-size:.9rem; }
+
+    /* Toast */
+    #appToast { position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#0f172a;color:white;border-radius:12px;padding:10px 18px;font-size:.83rem;font-weight:600;z-index:99999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:90vw;box-shadow:0 6px 20px rgba(0,0,0,.2); }
+    #appToast.show { opacity:1; }
+
+    /* Loading overlay */
+    #appLoader { position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(6px);z-index:9998;display:none;align-items:center;justify-content:center; }
+    .ldr-card { background:white;border-radius:20px;padding:28px 38px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.2); }
+    .ldr-spin { width:42px;height:42px;border:4px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .ldr-txt { font-size:.87rem;font-weight:800;color:#0f172a; }
+    .ldr-sub { font-size:.73rem;color:#64748b;margin-top:3px; }
+
+    /* Register modal (mobile sheet + desktop centered) */
+    .reg-modal-bg { position:fixed;inset:0;z-index:9997;background:rgba(15,23,42,.5);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s; }
+    .reg-modal-bg.open { opacity:1;pointer-events:all; }
+    .reg-modal-sheet { background:white;border-radius:22px 22px 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-height:92dvh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .reg-modal-bg.open .reg-modal-sheet { transform:translateY(0); }
+    @media(min-width:768px){
+      .reg-modal-bg { align-items:center;justify-content:center; }
+      .reg-modal-sheet { border-radius:18px;max-width:440px;transform:none;opacity:0;transition:opacity .2s; }
+      .reg-modal-bg.open .reg-modal-sheet { opacity:1; }
+    }
+    .reg-handle { width:34px;height:4px;background:#e2e8f0;border-radius:9999px;margin:0 auto 14px;display:block; }
+    @media(min-width:768px){ .reg-handle { display:none; } }
+    .reg-title  { font-size:.98rem;font-weight:800;text-align:center;margin-bottom:14px;color:#0f172a; }
+  </style>
+</head>
+<body>
+
+<!-- ===== SHARED: Intro Splash ===== -->
+<div id="gandhiIntroOverlay">
+  <div class="gandhi-modal-card">
+    <div class="gandhi-art-box">
+      <img src="/static/gandhi_intro.jpg" alt="Mahatma Gandhi" style="width:100%;height:100%;object-fit:cover;">
+    </div>
+    <div class="gandhi-quote-text">"If I have the belief that I can do it, I shall surely acquire the capacity to do it even if I may not have it at the beginning."</div>
+    <div class="gandhi-author-text">— Mahatma Gandhi</div>
+    <div class="intro-progress-bar-light"><div class="intro-progress-fill-light" id="introProgressFill"></div></div>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <span class="small text-muted" style="font-size:.74rem;">Ministry of External Affairs (MEA) Security Gateway</span>
+      <button class="btn-pill-action" id="btnDismissIntro" style="width:auto;padding:7px 22px;font-size:.8rem;">
+        <span>Enter Portal</span><i class="fa-solid fa-arrow-right ms-1"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SHARED: Toast & Loader ===== -->
+<div id="appToast"></div>
+<div id="appLoader" style="display:none;">
+  <div class="ldr-card">
+    <div class="ldr-spin"></div>
+    <div class="ldr-txt">AI Screening in Progress</div>
+    <div class="ldr-sub">Running 4-module analysis pipeline…</div>
+  </div>
+</div>
+
+<!-- ===== SHARED: Register Modal ===== -->
+<div class="reg-modal-bg" id="registerModal" onclick="handleRegModalBg(event)">
+  <div class="reg-modal-sheet">
+    <div class="reg-handle"></div>
+    <div class="reg-title"><i class="fa-solid fa-plus-circle text-success me-2"></i>Register Document Record</div>
+    <div class="mb-2"><label class="form-label-light mob-label">Document Type</label>
+      <select class="form-control-light mob-ctrl" id="regDocType"><option value="passport">Passport</option><option value="aadhaar">Aadhaar</option><option value="visa">Visa</option></select></div>
+    <div class="mb-2"><label class="form-label-light mob-label">Document Number</label>
+      <input type="text" class="form-control-light mob-ctrl" id="regDocNum" placeholder="e.g. A1234567"></div>
+    <div class="mb-2"><label class="form-label-light mob-label">Full Name</label>
+      <input type="text" class="form-control-light mob-ctrl" id="regFullName" placeholder="SURNAME GIVEN NAMES"></div>
+    <div class="mb-2"><label class="form-label-light mob-label">Date of Birth</label>
+      <input type="date" class="form-control-light mob-ctrl" id="regDob"></div>
+    <div class="mb-2"><label class="form-label-light mob-label">Expiry Date</label>
+      <input type="date" class="form-control-light mob-ctrl" id="regExpiry"></div>
+    <div class="mb-3"><label class="form-label-light mob-label">Gender</label>
+      <select class="form-control-light mob-ctrl" id="regGender"><option value="M">Male</option><option value="F">Female</option><option value="X">Other</option></select></div>
+    <button class="btn-pill-action mob-btn-primary" onclick="submitRegister()"><i class="fa-solid fa-check"></i> Register in National Registry</button>
+  </div>
+</div>
+
+
+<!-- ===========================================================
+     DESKTOP APP (Original Dashboard UI)
+=========================================================== -->
+<div id="desktopApp" style="display:none;">
+
+  <!-- Navbar -->
+  <nav class="light-navbar">
+    <div class="container-fluid d-flex flex-wrap justify-content-between align-items-center p-0">
+      <div class="d-flex align-items-center">
+        <div class="brand-shield-badge me-3"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+          <div class="brand-title">AI BASED FAKE IDENTITY &amp; DOCUMENT SCREENING SYSTEM</div>
+          <div class="brand-subtitle d-flex align-items-center gap-2">
+            <span>Ministry of External Affairs (MEA) • CPV Division • BOI/LOC Sync</span>
+            <span class="telemetry-chip ms-2"><span class="live-dot-green"></span> LIVE TELEMETRY</span>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+        <button class="btn-pill-nav btn-sm" id="btnShowGandhiQuote" title="View Sovereign Motto"><i class="fa-solid fa-quote-left me-1 text-primary"></i> National Motto</button>
+        <button class="btn-pill-nav btn-sm" onclick="openRegModal()"><i class="fa-solid fa-plus-circle me-1 text-success"></i> Register Record</button>
+        <button class="btn-pill-nav btn-sm" id="btnExportJson"><i class="fa-solid fa-file-export me-1 text-info"></i> Export Audit Dossier</button>
+        <button class="btn-pill-nav btn-sm" onclick="location.reload()"><i class="fa-solid fa-rotate me-1 text-warning"></i> Refresh</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Grid -->
+  <div class="container-fluid px-4 py-3">
+    <div class="row g-3">
+
+      <!-- LEFT COLUMN -->
+      <div class="col-lg-3 col-md-4">
+
+        <!-- Upload Card -->
+        <div class="light-card mb-3">
+          <div class="light-card-header">
+            <span class="d-flex align-items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-primary"></i> Document Intake &amp; Verification</span>
+            <span class="badge-pill-soft" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;">Live</span>
+          </div>
+          <div class="card-body p-3">
+            <form id="deskUploadForm" enctype="multipart/form-data">
+              <div class="mb-2">
+                <label class="form-label-light">Document Classification</label>
+                <select class="form-select form-select-sm form-select-light" name="doc_type" id="deskSelectDocType">
+                  <option value="passport">Indian Passport (ICAO TD3)</option>
+                  <option value="aadhaar">Indian Aadhaar Card (UIDAI)</option>
+                  <option value="visa">Indian Visa / e-Visa</option>
+                  <option value="pan_card">PAN Card / National ID</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label-light">Document Image Source</label>
+                <input type="file" class="form-control form-control-sm form-control-light" id="deskInputDocFile" name="doc_file" accept="image/*" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label-light">Live Traveler Facial Probe <small class="text-muted">(Optional)</small></label>
+                <input type="file" class="form-control form-control-sm form-control-light" id="deskInputLiveFile" name="live_file" accept="image/*">
+              </div>
+              <div class="mb-3">
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn-pill-nav btn-sm w-50" id="deskBtnToggleCam"><i class="fa-solid fa-camera me-1"></i> Webcam</button>
+                  <button type="button" class="btn btn-warning btn-sm w-50 fw-bold" id="deskBtnSnapCam" style="display:none;border-radius:9999px;"><i class="fa-solid fa-circle-dot me-1"></i> Capture Snap</button>
+                </div>
+                <video id="deskWebcamVideo" autoplay playsinline class="mt-2" style="width:100%;border-radius:10px;border:1px solid #bfdbfe;display:none;"></video>
+                <canvas id="deskSnapshotCanvas" style="display:none;"></canvas>
+              </div>
+              <button type="submit" class="btn-pill-action" id="deskBtnUploadSubmit">
+                <span>Verify &amp; Screen Document</span><i class="fa-solid fa-arrow-right ms-1"></i>
+              </button>
+              <div class="text-center mt-2" style="font-size:.72rem;color:#2563eb;">
+                <i class="fa-solid fa-circle-check me-1"></i> Dynamic verification: OCR, Verhoeff, ICAO &amp; Forensics
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Specimens Card -->
+        <div class="light-card">
+          <div class="light-card-header">
+            <span class="d-flex align-items-center gap-2"><i class="fa-solid fa-layer-group text-primary"></i> Benchmark Reference Specimens</span>
+            <span class="badge-pill-soft" style="background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">10 Test Cases</span>
+          </div>
+          <div class="p-2 pb-1" style="border-bottom:1px solid var(--card-border-subtle);">
+            <div style="font-size:.72rem;color:#64748b;line-height:1.35;">Preloaded test specimens to benchmark fraud detection algorithms.</div>
+          </div>
+          <div class="card-body p-2" id="deskSpecimensList">
+            <div class="text-center py-3" style="color:#94a3b8;font-size:.8rem;">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i>Loading test suite...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-lg-9 col-md-8">
+
+        <!-- Verdict HUD -->
+        <div class="hud-light-card mb-3">
+          <div class="row align-items-center">
+            <div class="col-md-3 text-center" style="border-right:1px solid var(--card-border);">
+              <div class="d-flex flex-column align-items-center justify-content-center px-2">
+                <div class="quick-stat-title mb-1">Overall Risk Score</div>
+                <div class="score-value-big" id="deskRiskScoreVal">--</div>
+                <div class="progress mt-2 w-100" style="height:6px;background:#e2e8f0;border-radius:9999px;">
+                  <div class="progress-bar" id="deskRiskProgressBar" role="progressbar" style="width:0%;border-radius:9999px;transition:width .4s ease;"></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-9 ps-md-4 mt-3 mt-md-0">
+              <div class="verdict-banner verdict-neutral mb-2" id="deskVerdictBanner">
+                <div class="me-3 p-2 rounded-circle" style="background:#eff6ff;color:#2563eb;"><i class="fa-solid fa-shield-halved fa-lg"></i></div>
+                <div><div class="fw-bold">Awaiting Document</div><div class="small text-muted fw-normal">Upload your document on the left or select a reference specimen to initiate evaluation.</div></div>
+              </div>
+              <div id="deskRiskReasonsBox" style="font-size:.82rem;color:#64748b;">Awaiting border screening input...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail Tabs -->
+        <div class="light-card">
+          <div class="card-header p-0" style="background:transparent;border:none;">
+            <ul class="nav light-tabs" id="deskDocTabs" role="tablist">
+              <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dtab-doc" type="button"><i class="fa-solid fa-passport"></i> Document &amp; VIZ <span id="dbadge-tab-doc"></span></button></li>
+              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dtab-db" type="button"><i class="fa-solid fa-database"></i> Database &amp; PKI <span id="dbadge-tab-db"></span></button></li>
+              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dtab-mrz" type="button"><i class="fa-solid fa-barcode"></i> ICAO MRZ <span id="dbadge-tab-mrz"></span></button></li>
+              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dtab-forensics" type="button"><i class="fa-solid fa-microchip"></i> Forensics <span id="dbadge-tab-forensics"></span></button></li>
+              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dtab-face" type="button"><i class="fa-solid fa-user-check"></i> Face Biometrics <span id="dbadge-tab-face"></span></button></li>
+              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dtab-watch" type="button"><i class="fa-solid fa-triangle-exclamation"></i> Watchlist / LOC <span id="dbadge-tab-watch"></span></button></li>
+            </ul>
+          </div>
+          <div class="card-body p-4">
+            <div class="tab-content">
+
+              <!-- Tab 1: Document & VIZ -->
+              <div class="tab-pane fade show active" id="dtab-doc">
+                <div class="row g-2 mb-4" id="deskQuickStatusRow" style="display:none;">
+                  <div class="col-md-3 col-6"><div class="quick-stat-light"><div class="quick-stat-title">Validity &amp; Expiry</div><div class="quick-stat-val" id="dqs-expiry">--</div></div></div>
+                  <div class="col-md-3 col-6"><div class="quick-stat-light"><div class="quick-stat-title">ICAO Doc 9303 MRZ</div><div class="quick-stat-val" id="dqs-mrz">--</div></div></div>
+                  <div class="col-md-3 col-6"><div class="quick-stat-light"><div class="quick-stat-title">Pixel Forensics</div><div class="quick-stat-val" id="dqs-forensics">--</div></div></div>
+                  <div class="col-md-3 col-6"><div class="quick-stat-light"><div class="quick-stat-title">1:1 Biometrics</div><div class="quick-stat-val" id="dqs-face">--</div></div></div>
+                </div>
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2"><span class="fw-bold" style="color:#0f172a;font-size:.88rem;"><i class="fa-solid fa-image me-1 text-primary"></i> Uploaded Document Inspection</span></div>
+                    <div class="preview-box-dashed">
+                      <img id="deskDocPreviewImg" src="" alt="Document Scan" class="img-fluid rounded-3" style="max-height:380px;object-fit:contain;display:none;">
+                      <div id="deskDocPreviewPlaceholder" class="text-center">
+                        <div class="p-3 rounded-circle d-inline-flex mb-2" style="background:#f1f5f9;color:#64748b;"><i class="fa-regular fa-file-lines fa-2x"></i></div>
+                        <div class="fw-bold text-dark small">No document uploaded yet.</div>
+                        <div class="text-muted small" style="font-size:.76rem;">Upload a document to begin inspection.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2"><span class="fw-bold" style="color:#0f172a;font-size:.88rem;"><i class="fa-solid fa-list-check me-1 text-primary"></i> Extracted Visual Fields (VIZ)</span></div>
+                    <div class="table-responsive"><table class="table-viz-clean"><tbody id="deskVizFieldsTable">
+                      <tr><td colspan="2" class="text-center py-5" style="border:none;background:transparent;"><div class="p-3 rounded-circle d-inline-flex mb-2" style="background:#f1f5f9;color:#64748b;"><i class="fa-solid fa-magnifying-glass-plus fa-2x"></i></div><div class="fw-bold text-dark small">Awaiting document upload...</div></td></tr>
+                    </tbody></table></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab 2: Database & PKI -->
+              <div class="tab-pane fade" id="dtab-db">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="fw-bold mb-2" style="color:#0f172a;font-size:.88rem;"><i class="fa-solid fa-server me-1 text-primary"></i> National Registry Issuance Match</div>
+                    <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid var(--card-border);" id="deskDbMatchDetailsBox"><div class="text-muted small">No database check completed yet.</div></div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="fw-bold mb-2" style="color:#0f172a;font-size:.88rem;"><i class="fa-solid fa-key me-1 text-primary"></i> Digital PKI &amp; CSCA Signature</div>
+                    <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid var(--card-border);" id="deskPkiDetailsBox"><div class="text-muted small">Passive authentication status.</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab 3: ICAO MRZ -->
+              <div class="tab-pane fade" id="dtab-mrz">
+                <div class="fw-bold mb-2" style="color:#0f172a;font-size:.88rem;"><i class="fa-solid fa-terminal me-1 text-primary"></i> Machine Readable Zone (MRZ)</div>
+                <div class="mrz-terminal-clean mb-3" id="deskMrzLinesBox">-- AWAITING DOCUMENT --</div>
+                <div class="light-card">
+                  <div class="light-card-header small fw-bold">ICAO Doc 9303 Check Digit Verification</div>
+                  <div class="card-body p-3" id="deskMrzValidationBox"><div class="text-muted small">Select or upload a document to inspect checksum status.</div></div>
+                </div>
+              </div>
+
+              <!-- Tab 4: Forensics -->
+              <div class="tab-pane fade" id="dtab-forensics">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div class="fw-bold" style="color:#0f172a;font-size:.88rem;"><i class="fa-solid fa-fingerprint me-1 text-primary"></i> Multi-Signal Forensic Heatmap Suite</div>
+                  <span id="deskTamperStatusBadge" class="badge-pill-soft" style="background:#f1f5f9;color:#475569;">AWAITING INPUT</span>
+                </div>
+                <div class="row g-3">
+                  <div class="col-md-3 col-6"><div class="small fw-bold text-muted mb-1">Error Level Analysis (ELA)</div><img id="deskHeatmapEla" src="" class="heatmap-clean-img" alt="ELA Map"></div>
+                  <div class="col-md-3 col-6"><div class="small fw-bold text-muted mb-1">Local Noise Variance</div><img id="deskHeatmapVariance" src="" class="heatmap-clean-img" alt="Variance Map"></div>
+                  <div class="col-md-3 col-6"><div class="small fw-bold text-muted mb-1">Photo Splice Seam</div><img id="deskHeatmapSplice" src="" class="heatmap-clean-img" alt="Splice Map"></div>
+                  <div class="col-md-3 col-6" id="deskHeatmapStampCol"><div class="small fw-bold text-muted mb-1">Stamp Forgery / Overlay</div><img id="deskHeatmapStamp" src="" class="heatmap-clean-img" alt="Stamp Map"></div>
+                </div>
+                <div class="mt-3 p-3 rounded-3" style="background:#f8fafc;border:1px solid var(--card-border);" id="deskTamperDetailsBox"><div class="small text-muted">Forensic inspection logs will appear here.</div></div>
+              </div>
+
+              <!-- Tab 5: Face Biometrics -->
+              <div class="tab-pane fade" id="dtab-face">
+                <div class="row g-3">
+                  <div class="col-md-4 text-center">
+                    <div class="small fw-bold text-muted mb-1">Document Portrait</div>
+                    <div class="preview-box-dashed" style="min-height:200px;"><img id="deskFaceDocImg" src="" class="img-fluid rounded" style="max-height:200px;" alt="Doc Face"></div>
+                  </div>
+                  <div class="col-md-4 text-center">
+                    <div class="small fw-bold text-muted mb-1">Live Traveler Probe</div>
+                    <div class="preview-box-dashed" style="min-height:200px;"><img id="deskFaceLiveImg" src="" class="img-fluid rounded" style="max-height:200px;" alt="Live Face"></div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="fw-bold mb-2" style="color:#0f172a;font-size:.88rem;">1:1 Biometric Verification</div>
+                    <div class="p-3 rounded-3 mb-3" style="background:#f8fafc;border:1px solid var(--card-border);">
+                      <div class="d-flex justify-content-between align-items-center mb-1"><span class="small text-muted">Facial Similarity:</span><span class="fw-bold" id="deskFaceMatchScore" style="color:#0f172a;">--%</span></div>
+                      <div class="d-flex justify-content-between align-items-center mb-1"><span class="small text-muted">1:1 Status:</span><span class="badge-pill-soft" id="deskFaceMatchBadge" style="background:#f1f5f9;color:#475569;">--</span></div>
+                      <div class="d-flex justify-content-between align-items-center"><span class="small text-muted">Engine:</span><span class="badge-pill-soft" id="deskFaceEngineBadge" style="background:#eff6ff;color:#2563eb;">--</span></div>
+                    </div>
+                    <div class="fw-bold mb-2" style="color:#0f172a;font-size:.88rem;">1:N Multi-Identity Gallery Search</div>
+                    <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid var(--card-border);" id="deskGalleryAlertBox"><div class="small text-muted">No historical conflict detected.</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab 6: Watchlist -->
+              <div class="tab-pane fade" id="dtab-watch">
+                <div class="fw-bold mb-2" style="color:#0f172a;font-size:.88rem;"><i class="fa-solid fa-shield-virus me-1 text-danger"></i> Bureau of Immigration (BOI) &amp; Interpol Intelligence Check</div>
+                <div id="deskWatchlistContentBox" class="p-3 rounded-3" style="background:#f8fafc;border:1px solid var(--card-border);"><div class="text-muted small">Select or upload a document to run watchlist screening.</div></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /right col -->
+    </div><!-- /row -->
+  </div><!-- /container -->
+
+  <!-- Register modal trigger via Bootstrap for desktop -->
+  <div class="modal fade" id="deskRegisterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content modal-content-light">
+        <div class="modal-header" style="border-bottom:1px solid var(--card-border);">
+          <h5 class="modal-title fw-bold" style="font-size:1rem;color:#0f172a;"><i class="fa-solid fa-plus-circle text-success me-2"></i>Register Document Record</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2"><label class="form-label-light">Document Type</label><select class="form-select form-select-sm form-select-light" id="deskRegDocType"><option value="passport">Passport</option><option value="aadhaar">Aadhaar</option><option value="visa">Visa</option></select></div>
+          <div class="mb-2"><label class="form-label-light">Document Number</label><input type="text" class="form-control form-control-sm form-control-light" id="deskRegDocNum" placeholder="e.g. A1234567"></div>
+          <div class="mb-2"><label class="form-label-light">Full Name</label><input type="text" class="form-control form-control-sm form-control-light" id="deskRegFullName" placeholder="SURNAME GIVEN NAMES"></div>
+          <div class="mb-2"><label class="form-label-light">Date of Birth</label><input type="date" class="form-control form-control-sm form-control-light" id="deskRegDob"></div>
+          <div class="mb-2"><label class="form-label-light">Expiry Date</label><input type="date" class="form-control form-control-sm form-control-light" id="deskRegExpiry"></div>
+          <div class="mb-3"><label class="form-label-light">Gender</label><select class="form-select form-select-sm form-select-light" id="deskRegGender"><option value="M">Male</option><option value="F">Female</option><option value="X">Other</option></select></div>
+        </div>
+        <div class="modal-footer" style="border-top:1px solid var(--card-border);">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn-pill-action" style="width:auto;padding:8px 20px;font-size:.82rem;" onclick="submitDeskRegister()"><i class="fa-solid fa-check me-1"></i>Register</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /desktopApp -->
+
+
+<!-- ===========================================================
+     MOBILE APP (PWA Shell)
+=========================================================== -->
+<div id="mobileApp" style="display:none;">
+
+  <!-- Mobile Nav -->
+  <div class="mob-nav">
+    <div class="mob-brand-badge"><i class="fa-solid fa-shield-halved"></i></div>
+    <div style="flex:1;min-width:0;">
+      <div class="mob-brand-name">DocScreen AI</div>
+      <div class="mob-brand-sub">MEA · UIDAI · BOI Border Intelligence</div>
+    </div>
+    <div class="mob-live-chip"><div class="mob-live-dot"></div>LIVE</div>
+    <button class="mob-icon-btn" id="mobBtnExport"><i class="fa-solid fa-file-export"></i></button>
+  </div>
+
+  <!-- Mobile Content -->
+  <div class="mob-content">
+
+    <!-- SCAN tab -->
+    <div class="mob-page active" id="mob-scan">
+      <div class="mob-install" id="mobInstallBanner">
+        <div style="font-size:1.3rem;">📲</div>
+        <div class="mob-inst-txt"><strong>Add to Home Screen</strong> for native app</div>
+        <button class="mob-inst-btn" id="mobBtnInstall">Install</button>
+        <button class="mob-inst-x" id="mobBtnDismissInstall">✕</button>
+      </div>
+
+      <div class="m-card">
+        <div class="m-card-body" style="border-top:none;">
+          <label class="mob-label">Document Type</label>
+          <select class="mob-ctrl" id="mobDocType">
+            <option value="passport">🛂 Indian Passport (ICAO TD3)</option>
+            <option value="aadhaar">🪪 Aadhaar Card (UIDAI)</option>
+            <option value="visa">✈️ Indian Visa / e-Visa</option>
+            <option value="pan_card">💳 PAN Card / National ID</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="m-card">
+        <div class="m-card-head open" onclick="mobToggle(this)">
+          <span class="mch-left"><i class="fa-solid fa-id-card" style="color:#2563eb;"></i> Document Photo</span>
+          <i class="fa-solid fa-chevron-down mchev"></i>
+        </div>
+        <div class="m-card-body">
+          <div class="mob-upload" id="mobDocZone"><input type="file" id="mobDocFile" accept="image/*"><div class="mob-upload-icon">📄</div><div class="mob-upload-lbl">Upload Document Scan</div><div class="mob-upload-sub">JPEG / PNG · Tap to browse</div></div>
+          <div class="mob-cam-row"><button class="mob-cam-btn mob-cam-rear" onclick="mobCam('mobDocFile','environment')"><i class="fa-solid fa-camera"></i> Rear Camera</button></div>
+          <img id="mobDocPrev" class="mob-upload-prev" style="display:none;">
+        </div>
+      </div>
+
+      <div class="m-card">
+        <div class="m-card-head open" onclick="mobToggle(this)">
+          <span class="mch-left"><i class="fa-solid fa-user" style="color:#16a34a;"></i> Traveler Selfie <span class="mob-pill mp-gray" style="font-size:.6rem;margin-left:4px;">Optional</span></span>
+          <i class="fa-solid fa-chevron-down mchev"></i>
+        </div>
+        <div class="m-card-body">
+          <div class="mob-upload" id="mobLiveZone"><input type="file" id="mobLiveFile" accept="image/*"><div class="mob-upload-icon">🤳</div><div class="mob-upload-lbl">Capture Traveler Face</div><div class="mob-upload-sub">For 1:1 biometric verification</div></div>
+          <div class="mob-cam-row"><button class="mob-cam-btn mob-cam-front" onclick="mobCam('mobLiveFile','user')"><i class="fa-solid fa-camera-rotate"></i> Front Camera</button></div>
+          <img id="mobLivePrev" class="mob-upload-prev" style="display:none;">
+        </div>
+      </div>
+
+      <button class="mob-btn-primary" id="mobBtnSubmit" onclick="mobSubmit()">
+        <i class="fa-solid fa-microchip"></i> Run AI Screening Pipeline
+      </button>
+      <div style="text-align:center;font-size:.68rem;color:#64748b;margin-top:7px;">
+        <i class="fa-solid fa-circle-check me-1" style="color:#2563eb;font-size:.62rem;"></i>OCR · ICAO MRZ · Forensics · Biometrics
+      </div>
+    </div>
+
+    <!-- RESULTS tab -->
+    <div class="mob-page" id="mob-results">
+      <div id="mobVerdictCard" class="mob-verdict">
+        <div class="mv-top">
+          <div id="mobVIcon" class="mv-icon">🛡️</div>
+          <div style="flex:1;"><div id="mobVTitle" class="mv-title">Awaiting Document</div><div id="mobVSub" class="mv-sub">Upload on Scan tab to begin.</div></div>
+          <div class="mv-ring">
+            <svg width="68" height="68" viewBox="0 0 68 68"><circle cx="34" cy="34" r="27" stroke="#e2e8f0" stroke-width="7" fill="none"/><circle id="mobRiskArc" cx="34" cy="34" r="27" stroke="#2563eb" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="170" stroke-dashoffset="170" style="transition:stroke-dashoffset .7s ease,stroke .4s ease;"/></svg>
+            <div class="mv-ring-in"><div id="mobRiskNum" class="mv-score">--</div><div class="mv-slbl">Risk</div></div>
+          </div>
+        </div>
+        <div id="mobReasonTags" class="mob-tags" style="display:none;"></div>
+      </div>
+
+      <div class="mob-chips" id="mobChips" style="display:none;">
+        <div class="mob-chip"><div class="mch-lbl">Expiry</div><div class="mch-val" id="mc-exp">--</div></div>
+        <div class="mob-chip"><div class="mch-lbl">MRZ</div><div class="mch-val" id="mc-mrz">--</div></div>
+        <div class="mob-chip"><div class="mch-lbl">Forensics</div><div class="mch-val" id="mc-for">--</div></div>
+        <div class="mob-chip"><div class="mch-lbl">Face</div><div class="mch-val" id="mc-fce">--</div></div>
+        <div class="mob-chip"><div class="mch-lbl">Watchlist</div><div class="mch-val" id="mc-wtc">--</div></div>
+      </div>
+
+      <div class="m-card"><div class="m-card-head open" onclick="mobToggle(this)"><span class="mch-left"><i class="fa-solid fa-list-check" style="color:#2563eb;"></i> Extracted Fields</span><i class="fa-solid fa-chevron-down mchev"></i></div><div class="m-card-body"><table class="mob-viz"><tbody id="mobVizTable"><tr><td colspan="2" style="border:none;"><div class="mob-empty"><div class="mei">🔍</div><p>Upload a document to extract fields.</p></div></td></tr></tbody></table></div></div>
+
+      <div class="m-card"><div class="m-card-head" onclick="mobToggle(this)"><span class="mch-left"><i class="fa-solid fa-barcode" style="color:#2563eb;"></i> ICAO MRZ &amp; Checksums</span><i class="fa-solid fa-chevron-down mchev"></i></div><div class="m-card-body" style="display:none;"><div class="mob-mrz" id="mobMrzDisplay">-- AWAITING --</div><div id="mobMrzVal" style="margin-top:9px;"></div></div></div>
+
+      <div class="m-card"><div class="m-card-head" onclick="mobToggle(this)"><span class="mch-left"><i class="fa-solid fa-microchip" style="color:#2563eb;"></i> Forensics <span id="mobTamperPill" class="mob-pill mp-gray" style="margin-left:4px;font-size:.6rem;">—</span></span><i class="fa-solid fa-chevron-down mchev"></i></div><div class="m-card-body" style="display:none;"><div class="mob-hm-grid"><div><div class="mob-hm-lbl">ELA</div><img id="mobHmEla" class="mob-hm-img" src="" alt="ELA"></div><div><div class="mob-hm-lbl">Noise Variance</div><img id="mobHmVar" class="mob-hm-img" src="" alt="Var"></div><div><div class="mob-hm-lbl">Photo Splice</div><img id="mobHmSplice" class="mob-hm-img" src="" alt="Splice"></div><div id="mobHmStampWrap"><div class="mob-hm-lbl">Stamp Forgery</div><img id="mobHmStamp" class="mob-hm-img" src="" alt="Stamp"></div></div><div id="mobTamperDetail" style="margin-top:9px;"></div></div></div>
+
+      <div class="m-card"><div class="m-card-head" onclick="mobToggle(this)"><span class="mch-left"><i class="fa-solid fa-user-check" style="color:#2563eb;"></i> Face Biometrics</span><i class="fa-solid fa-chevron-down mchev"></i></div><div class="m-card-body" style="display:none;"><div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px;"><div><div class="mob-hm-lbl">Document Portrait</div><img id="mobFaceDoc" src="" style="width:100%;border-radius:9px;border:1px solid #e2e8f0;min-height:70px;object-fit:contain;background:#f8fafc;"></div><div><div class="mob-hm-lbl">Live Probe</div><img id="mobFaceLive" src="" style="width:100%;border-radius:9px;border:1px solid #e2e8f0;min-height:70px;object-fit:contain;background:#f8fafc;"></div></div><div id="mobFaceResult"></div><div style="margin-top:11px;font-size:.8rem;font-weight:700;margin-bottom:5px;">1:N Gallery</div><div id="mobGallery"></div></div></div>
+
+      <div class="m-card"><div class="m-card-head" onclick="mobToggle(this)"><span class="mch-left"><i class="fa-solid fa-database" style="color:#2563eb;"></i> Registry &amp; PKI</span><i class="fa-solid fa-chevron-down mchev"></i></div><div class="m-card-body" style="display:none;"><div id="mobDbResult"></div><div style="margin-top:11px;font-size:.8rem;font-weight:700;margin-bottom:5px;">PKI / CSCA Signature</div><div id="mobPkiResult"></div></div></div>
+
+      <div class="m-card"><div class="m-card-head" onclick="mobToggle(this)"><span class="mch-left"><i class="fa-solid fa-shield-virus" style="color:#dc2626;"></i> Watchlist &amp; BOI</span><i class="fa-solid fa-chevron-down mchev"></i></div><div class="m-card-body" style="display:none;"><div id="mobWatchlist"></div></div></div>
+    </div>
+
+    <!-- SPECIMENS tab -->
+    <div class="mob-page" id="mob-specimens">
+      <div class="m-card"><div class="m-card-body" style="border-top:none;"><div style="font-size:.76rem;color:#64748b;margin-bottom:11px;"><i class="fa-solid fa-flask-vial me-1" style="color:#2563eb;"></i>Tap a specimen to auto-run AI screening.</div><div id="mobSpecList"><div class="mob-empty"><div class="mei">⏳</div><p>Loading specimens…</p></div></div></div></div>
+    </div>
+
+    <!-- REGISTRY tab -->
+    <div class="mob-page" id="mob-database">
+      <div class="m-card"><div class="m-card-head open" onclick="mobToggle(this)"><span class="mch-left"><i class="fa-solid fa-search" style="color:#2563eb;"></i> Search Registry</span><i class="fa-solid fa-chevron-down mchev"></i></div>
+        <div class="m-card-body">
+          <label class="mob-label">Table</label>
+          <select class="mob-ctrl" id="mobDbTable" style="margin-bottom:9px;"><option value="issued_passports">Issued Passports (MEA)</option><option value="aadhaar_cidr">Aadhaar CIDR (UIDAI)</option><option value="boi_lookout_circulars">BOI Lookout Circulars</option></select>
+          <label class="mob-label" style="margin-top:5px;">Search</label>
+          <input type="text" class="mob-ctrl" id="mobDbQ" placeholder="Name or document number…" style="margin-bottom:9px;">
+          <button class="mob-btn-primary" style="padding:12px;" onclick="mobDbQuery()"><i class="fa-solid fa-magnifying-glass"></i> Search Registry</button>
+        </div>
+      </div>
+      <div id="mobDbResults"></div>
+      <button class="mob-btn-primary mob-btn-teal" style="padding:12px;" onclick="openRegModal()"><i class="fa-solid fa-plus-circle"></i> Register New Record</button>
+    </div>
+
+    <!-- SETTINGS tab -->
+    <div class="mob-page" id="mob-settings">
+      <div class="m-card"><div style="padding:15px;">
+        <div class="mob-info-row"><span class="mob-ik">System</span><span class="mob-iv">AI Document Screening</span></div>
+        <div class="mob-info-row"><span class="mob-ik">Authority</span><span class="mob-iv">Ministry of External Affairs</span></div>
+        <div class="mob-info-row"><span class="mob-ik">Version</span><span class="mob-iv">v2.0 PWA</span></div>
+        <div class="mob-info-row"><span class="mob-ik">PWA Status</span><span class="mob-iv" id="mobPwaStatus">Checking…</span></div>
+      </div></div>
+      <button class="mob-btn-primary mob-btn-slate" style="padding:12px;margin-bottom:8px;" onclick="location.reload()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+      <button class="mob-btn-primary" id="mobBtnExportSettings" style="padding:12px;"><i class="fa-solid fa-file-export"></i> Export Audit Dossier</button>
+    </div>
+
+  </div><!-- /mob-content -->
+
+  <!-- Bottom Tab Bar -->
+  <div id="mobTabBar">
+    <button class="mob-tab active" onclick="mobSwitchTab('scan',this)"><i class="fa-solid fa-camera mob-tab-icon"></i><span class="mob-tab-lbl">Scan</span></button>
+    <button class="mob-tab" onclick="mobSwitchTab('results',this)"><i class="fa-solid fa-chart-bar mob-tab-icon"></i><span class="mob-tab-lbl">Results</span></button>
+    <div class="mob-fab-wrap"><button class="mob-fab" onclick="mobSwitchTab('scan',document.querySelector('.mob-tab'))"><i class="fa-solid fa-shield-halved"></i></button></div>
+    <button class="mob-tab" onclick="mobSwitchTab('specimens',this)"><i class="fa-solid fa-flask-vial mob-tab-icon"></i><span class="mob-tab-lbl">Specimens</span></button>
+    <button class="mob-tab" onclick="mobSwitchTab('database',this)"><i class="fa-solid fa-database mob-tab-icon"></i><span class="mob-tab-lbl">Registry</span></button>
+  </div>
+
+</div><!-- /mobileApp -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ================================================================
+   LAYOUT SWITCHER — JS-driven, most reliable approach
+================================================================ */
+const MOBILE_BREAKPOINT = 768;
+let lastReport = null;
+let deferredInstall = null;
+
+function applyLayout() {
+  const isMob = window.innerWidth < MOBILE_BREAKPOINT;
+  const deskEl = document.getElementById('desktopApp');
+  const mobEl  = document.getElementById('mobileApp');
+  deskEl.style.display = isMob ? 'none' : 'block';
+  mobEl.style.display  = isMob ? 'flex' : 'none';
+  document.body.style.overflow = isMob ? 'hidden' : 'auto';
+  document.body.style.height   = isMob ? '100dvh' : 'auto';
+  if (isMob) document.body.style.background = '#f1f5f9';
+  else document.body.style.background = 'var(--bg-canvas)';
+}
+
+applyLayout();
+window.addEventListener('resize', applyLayout);
+
+/* ================================================================
+   PWA — Service Worker + Install
+================================================================ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(() => { const el = document.getElementById('mobPwaStatus'); if (el) el.textContent = '✅ Service Worker Active'; })
+      .catch(() => { const el = document.getElementById('mobPwaStatus'); if (el) el.textContent = '⚠️ SW unavailable'; });
+  });
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); deferredInstall = e;
+  const b = document.getElementById('mobInstallBanner');
+  if (b) b.style.display = 'flex';
+});
+
+document.getElementById('mobBtnInstall')?.addEventListener('click', async () => {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  const { outcome } = await deferredInstall.userChoice;
+  if (outcome === 'accepted') { showToast('📲 Installed!'); document.getElementById('mobInstallBanner').style.display = 'none'; }
+  deferredInstall = null;
+});
+document.getElementById('mobBtnDismissInstall')?.addEventListener('click', () => { document.getElementById('mobInstallBanner').style.display = 'none'; });
+if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+  const b = document.getElementById('mobInstallBanner'); if (b) b.style.display = 'none';
+  const ps = document.getElementById('mobPwaStatus'); if (ps) ps.textContent = '📲 Running as installed PWA';
+}
+
+/* ================================================================
+   INTRO SPLASH
+================================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  const fill = document.getElementById('introProgressFill');
+  setTimeout(() => { if (fill) fill.style.width = '100%'; }, 100);
+  document.getElementById('btnDismissIntro').addEventListener('click', dismissIntro);
+  setTimeout(dismissIntro, 3500);
+  loadSpecimens();
+  initMobAccordions();
+  initDeskForm();
+  initDeskWebcam();
+});
+
+function dismissIntro() {
+  const o = document.getElementById('gandhiIntroOverlay');
+  if (!o) return;
+  o.style.opacity = '0'; o.style.pointerEvents = 'none';
+  setTimeout(() => o.remove(), 500);
+}
+
+/* ================================================================
+   SHARED UTILITIES
+================================================================ */
+let toastTimer;
+function showToast(msg, ms = 2500) {
+  const t = document.getElementById('appToast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function setLoading(on) {
+  document.getElementById('appLoader').style.display = on ? 'flex' : 'none';
+}
+
+const VIZ_LABELS = { passport_number:"Passport No.", document_number:"Document No.", aadhaar_number:"Aadhaar No. (UID)", pan_number:"PAN No.", visa_number:"Visa No.", surname:"Surname", given_names:"Given Names", full_name:"Full Name", nationality:"Nationality", country_code:"Country Code", dob:"Date of Birth", date_of_birth:"Date of Birth", sex:"Sex", gender:"Gender", expiry_date:"Expiry Date", issue_date:"Date of Issue", valid_from:"Valid From", valid_until:"Valid Until", place_of_birth:"Place of Birth", place_of_issue:"Place of Issue", visa_type:"Visa Category", entries:"Entries Allowed", file_number:"File No.", stay_duration_days:"Stay Duration (Days)", verhoeff_valid:"UIDAI Verhoeff Checksum" };
+const SKIP_FIELDS = new Set(["id_number","raw_dob_str","stay_duration","document_type","issuing_country","dob_str","expiry_str","optional_data"]);
+
+function isMrzBad(data) {
+  return (data.cross_check && !data.cross_check.all_matched) ||
+    (data.reasons||[]).some(r => r.toUpperCase().includes('MRZ') && (r.toUpperCase().includes('FORGERY')||r.toUpperCase().includes('MISMATCH')||r.toUpperCase().includes('CONTRADICTS')));
+}
+
+/* ================================================================
+   SPECIMENS
+================================================================ */
+const SPEC_ICONS = { passport:'🛂', visa:'✈️', aadhaar:'🪪', pan_card:'💳', national_id:'💳' };
+
+async function loadSpecimens() {
+  try {
+    const res = await fetch('/api/specimens');
+    const data = await res.json();
+    const html = (data.specimens||[]).map(s => `
+      <button class="specimen-btn mob-spec" onclick="runSpecimen('${s.name}','${s.doc_filename}','${s.live_filename}',this)">
+        <span>${SPEC_ICONS[s.doc_type]||'📄'} ${s.name}</span>
+        <span class="badge-pill-soft" style="background:#f1f5f9;color:#475569;font-size:.68rem;">${s.doc_type.toUpperCase()}</span>
+      </button>
+    `).join('') || '<div class="text-muted small">No specimens found.</div>';
+    ['deskSpecimensList','mobSpecList'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = html; });
+  } catch(e) {
+    ['deskSpecimensList','mobSpecList'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = '<div class="text-muted small">Could not load specimens.</div>'; });
+  }
+}
+
+async function runSpecimen(name, docFile, liveFile, el) {
+  document.querySelectorAll('.specimen-btn, .mob-spec').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  showToast(`📋 Running: ${name}…`);
+  setLoading(true);
+  try {
+    const res = await fetch('/api/screen', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ doc_filename: docFile, live_filename: liveFile||null }) });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const data = await res.json(); lastReport = data;
+    if (window.innerWidth < MOBILE_BREAKPOINT) {
+      renderMob(data, `Specimen: ${name}`);
+      mobSwitchTab('results', null);
+    } else {
+      renderDesk(data, `Specimen: ${name}`);
+    }
+    showToast('✅ Screening complete');
+  } catch(e) { showToast(`❌ ${e.message}`); }
+  finally { setLoading(false); }
+}
+
+/* ================================================================
+   DESKTOP — Form, Webcam, Render
+================================================================ */
+function initDeskForm() {
+  const form = document.getElementById('deskUploadForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const docFile = document.getElementById('deskInputDocFile').files[0];
+    if (!docFile) { showToast('⚠️ Please upload a document image'); return; }
+    const btn = document.getElementById('deskBtnUploadSubmit');
+    btn.disabled = true; setLoading(true);
+    try {
+      const fd = new FormData(form);
+      const liveSnap = deskGetSnapshot();
+      if (liveSnap) fd.set('live_file', liveSnap, 'webcam_snap.jpg');
+      const res = await fetch('/api/upload_and_screen', { method:'POST', body: fd });
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const data = await res.json(); lastReport = data;
+      renderDesk(data, 'Uploaded Document');
+      showToast('✅ Screening complete');
+    } catch(e) { showToast(`❌ ${e.message}`); }
+    finally { setLoading(false); btn.disabled = false; }
+  });
+}
+
+let deskStream = null;
+let deskSnapshotBlob = null;
+
+function deskGetSnapshot() { return deskSnapshotBlob; }
+
+function initDeskWebcam() {
+  const btnToggle = document.getElementById('deskBtnToggleCam');
+  const btnSnap   = document.getElementById('deskBtnSnapCam');
+  const video     = document.getElementById('deskWebcamVideo');
+  const canvas    = document.getElementById('deskSnapshotCanvas');
+  if (!btnToggle) return;
+
+  btnToggle.addEventListener('click', async () => {
+    if (deskStream) {
+      deskStream.getTracks().forEach(t => t.stop()); deskStream = null;
+      video.style.display = 'none'; btnSnap.style.display = 'none';
+      btnToggle.innerHTML = '<i class="fa-solid fa-camera me-1"></i> Webcam';
+    } else {
+      try {
+        deskStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = deskStream; video.style.display = 'block';
+        btnSnap.style.display = 'inline-flex';
+        btnToggle.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> Stop Cam';
+      } catch(e) { showToast('⚠️ Camera access denied'); }
+    }
+  });
+
+  btnSnap.addEventListener('click', () => {
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    canvas.toBlob(blob => {
+      deskSnapshotBlob = blob;
+      showToast('📸 Snapshot captured — will be used as live probe');
+    }, 'image/jpeg', 0.92);
+  });
+}
+
+function openRegModal() {
+  if (window.innerWidth >= MOBILE_BREAKPOINT) {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('deskRegisterModal')).show();
+  } else {
+    document.getElementById('registerModal').classList.add('open');
+  }
+}
+
+document.getElementById('btnShowGandhiQuote')?.addEventListener('click', () => {
+  document.getElementById('gandhiIntroOverlay') || location.reload();
+  const overlay = document.createElement('div');
+  overlay.id = 'gandhiIntroOverlay';
+  overlay.innerHTML = document.querySelector('.gandhi-modal-card')?.outerHTML || '';
+  document.body.appendChild(overlay);
+});
+
+document.getElementById('btnExportJson')?.addEventListener('click', exportDossier);
+
+/* ----------------------------------------------------------------
+   DESKTOP RENDER
+---------------------------------------------------------------- */
+function renderDesk(data, src) {
+  const score = data.risk_score || 0;
+  const verdict = data.verdict || 'GREEN';
+  const bad = isMrzBad(data);
+  const isExpired = (data.reasons||[]).some(r => r.toUpperCase().includes('EXPIRED'));
+
+  // Risk score + verdict banner
+  const scoreEl = document.getElementById('deskRiskScoreVal');
+  const bar = document.getElementById('deskRiskProgressBar');
+  const banner = document.getElementById('deskVerdictBanner');
+  const reasonsBox = document.getElementById('deskRiskReasonsBox');
+
+  if (scoreEl) scoreEl.textContent = score;
+  if (bar) { bar.style.width = score + '%'; }
+
+  if (banner) {
+    banner.className = 'verdict-banner';
+    const sourceTag = `<div class="small text-muted fw-normal">${src}</div>`;
+    if (verdict === 'GREEN') {
+      banner.classList.add('verdict-green');
+      banner.innerHTML = `<div class="me-3 p-2 rounded-circle" style="background:#dcfce7;color:#16a34a;"><i class="fa-solid fa-circle-check fa-lg"></i></div><div>${sourceTag}<div class="fw-bold">[GREEN] ${data.decision_text}</div></div>`;
+      bar.style.background = '#16a34a';
+      scoreEl.style.color = '#16a34a';
+    } else if (verdict === 'YELLOW') {
+      banner.classList.add('verdict-yellow');
+      banner.innerHTML = `<div class="me-3 p-2 rounded-circle" style="background:#fef3c7;color:#b45309;"><i class="fa-solid fa-triangle-exclamation fa-lg"></i></div><div>${sourceTag}<div class="fw-bold">[YELLOW] ${data.decision_text}</div></div>`;
+      bar.style.background = '#d97706'; scoreEl.style.color = '#d97706';
+    } else {
+      banner.classList.add('verdict-red');
+      banner.innerHTML = `<div class="me-3 p-2 rounded-circle" style="background:#fee2e2;color:#b91c1c;"><i class="fa-solid fa-ban fa-lg"></i></div><div>${sourceTag}<div class="fw-bold">[RED] ${data.decision_text}</div></div>`;
+      bar.style.background = '#dc2626'; scoreEl.style.color = '#dc2626';
+    }
+  }
+
+  if (reasonsBox) {
+    if (data.reasons?.length) {
+      reasonsBox.innerHTML = '<strong class="text-dark">Flagged Issues:</strong> ' + data.reasons.map(r => `<span class="badge-pill-soft me-1" style="background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;">${r}</span>`).join('');
+    } else {
+      reasonsBox.innerHTML = '<span class="text-success"><i class="fa-solid fa-check-double me-1"></i>All sovereign standards, registry checks, and biometrics verified clean.</span>';
+    }
+  }
+
+  // Quick stats
+  const qsRow = document.getElementById('deskQuickStatusRow');
+  if (qsRow) qsRow.style.display = 'flex';
+
+  const setEl = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  setEl('dqs-expiry', isExpired ? '<span class="text-danger fw-bold"><i class="fa-solid fa-circle-xmark me-1"></i>EXPIRED</span>' : '<span class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i>VALID</span>');
+  if (data.ocr?.mrz_lines?.length) {
+    setEl('dqs-mrz', bad ? '<span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i>FORGED</span>' : (data.ocr.mrz_all_ok ? '<span class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i>PASS</span>' : '<span class="text-danger fw-bold"><i class="fa-solid fa-circle-xmark me-1"></i>FAIL</span>'));
+  } else setEl('dqs-mrz', '<span class="text-muted fw-bold"><i class="fa-solid fa-minus me-1"></i>CARD</span>');
+  setEl('dqs-forensics', (data.tampering?.is_tampered) ? '<span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i>TAMPERED</span>' : '<span class="text-success fw-bold"><i class="fa-solid fa-shield-check me-1"></i>CLEAN</span>');
+  setEl('dqs-face', (data.face?.live_provided) ? (data.face.matched ? `<span class="text-success fw-bold"><i class="fa-solid fa-user-check me-1"></i>MATCH (${(data.face.similarity_score*100).toFixed(0)}%)</span>` : '<span class="text-danger fw-bold"><i class="fa-solid fa-user-xmark me-1"></i>MISMATCH</span>') : '<span class="text-muted fw-bold">DOC ONLY</span>');
+
+  // Doc preview
+  const prev = document.getElementById('deskDocPreviewImg');
+  const ph   = document.getElementById('deskDocPreviewPlaceholder');
+  if (data.doc_filename && prev) { prev.src = `/media/${data.doc_filename}?t=${Date.now()}`; prev.style.display='block'; if(ph) ph.style.display='none'; }
+
+  // VIZ Fields
+  const vizTbl = document.getElementById('deskVizFieldsTable');
+  if (vizTbl) {
+    if (data.ocr?.fields && Object.keys(data.ocr.fields).length) {
+      let rows = '';
+      const conf = data.ocr.ocr_confidence != null ? Math.round(data.ocr.ocr_confidence*100) : null;
+      if (conf !== null) rows += `<tr><td colspan="2" class="pb-2" style="border:none;background:transparent;"><span class="badge-pill-soft" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;"><i class="fa-solid fa-microscope me-1"></i>OCR Confidence: ${conf}%</span></td></tr>`;
+      for (const [k, v] of Object.entries(data.ocr.fields)) {
+        if (SKIP_FIELDS.has(k) || !v) continue;
+        const label = VIZ_LABELS[k] || k.replace(/_/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+        let dv = String(v);
+        if (dv.match(/^\d{4}-\d{2}-\d{2}/)) { try { dv = new Date(dv).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){} }
+        else if (k === 'verhoeff_valid') dv = v ? '<span class="badge-pill-soft" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">VALID</span>' : '<span class="badge-pill-soft" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;">INVALID</span>';
+        rows += `<tr><th>${label}</th><td>${dv}</td></tr>`;
+      }
+      vizTbl.innerHTML = rows;
+    } else {
+      vizTbl.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-muted" style="border:none;background:transparent;"><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>Could not extract visual fields.</td></tr>';
+    }
+  }
+
+  // Tab badges
+  const fieldCount = data.ocr?.fields ? Object.keys(data.ocr.fields).length : 0;
+  setEl('dbadge-tab-doc', `<span class="badge-pill-soft ms-1" style="background:#eff6ff;color:#2563eb;font-size:.65rem;">${fieldCount}</span>`);
+  if (data.database?.record_found) setEl('dbadge-tab-db', `<span class="badge-pill-soft ms-1" style="background:${data.database.is_active?'#f0fdf4':'#fef2f2'};color:${data.database.is_active?'#16a34a':'#dc2626'};font-size:.65rem;">${data.database.status_in_db}</span>`);
+  else setEl('dbadge-tab-db', '<span class="badge-pill-soft ms-1" style="background:#f1f5f9;color:#64748b;font-size:.65rem;">Unreg</span>');
+  if (data.ocr?.mrz_lines?.length) setEl('dbadge-tab-mrz', bad ? '<span class="badge-pill-soft ms-1" style="background:#fef2f2;color:#dc2626;font-size:.65rem;border:1px solid #fca5a5;">FORGED</span>' : (data.ocr.mrz_all_ok ? '<span class="badge-pill-soft ms-1" style="background:#f0fdf4;color:#16a34a;font-size:.65rem;">Valid</span>' : '<span class="badge-pill-soft ms-1" style="background:#fef2f2;color:#dc2626;font-size:.65rem;">Fail</span>'));
+  setEl('dbadge-tab-forensics', (data.tampering?.is_tampered) ? '<span class="badge-pill-soft ms-1" style="background:#fef2f2;color:#dc2626;font-size:.65rem;">Alert</span>' : '<span class="badge-pill-soft ms-1" style="background:#f0fdf4;color:#16a34a;font-size:.65rem;">Clean</span>');
+  if (data.face?.live_provided) setEl('dbadge-tab-face', data.face.matched ? '<span class="badge-pill-soft ms-1" style="background:#f0fdf4;color:#16a34a;font-size:.65rem;">Match</span>' : '<span class="badge-pill-soft ms-1" style="background:#fef2f2;color:#dc2626;font-size:.65rem;">Mismatch</span>');
+  setEl('dbadge-tab-watch', (data.blacklist?.is_flagged) ? '<span class="badge-pill-soft ms-1" style="background:#fef2f2;color:#dc2626;font-size:.65rem;">ALERT</span>' : '<span class="badge-pill-soft ms-1" style="background:#f0fdf4;color:#16a34a;font-size:.65rem;">Clear</span>');
+
+  // DB Tab
+  const dbBox = document.getElementById('deskDbMatchDetailsBox');
+  if (dbBox && data.database?.record_found) {
+    const rec = data.database.db_record||{};
+    dbBox.innerHTML = `<div class="fw-bold mb-2 text-success"><i class="fa-solid fa-circle-check me-2"></i>Record Found (${data.database.status_in_db})</div><table class="table-viz-clean"><tr><th>Database Name</th><td>${rec.full_name||''}</td></tr><tr><th>Database DOB</th><td>${rec.dob||''}</td></tr><tr><th>Database Expiry</th><td>${rec.expiry_date||''}</td></tr><tr><th>Status</th><td><span class="badge-pill-soft" style="background:${data.database.is_active?'#f0fdf4':'#fef2f2'};color:${data.database.is_active?'#16a34a':'#dc2626'};">${data.database.status_in_db}</span></td></tr></table>${(data.database.discrepancies||[]).map(d=>`<div class="text-danger small mt-1">• ${d}</div>`).join('')}`;
+  } else if (dbBox) {
+    dbBox.innerHTML = '<div class="fw-bold text-warning"><i class="fa-solid fa-triangle-exclamation me-2"></i>Unregistered / Ad-hoc Document</div><div class="small text-muted mt-1">This document is not in the local sample database.</div>';
+  }
+
+  // PKI
+  const pkiBox = document.getElementById('deskPkiDetailsBox');
+  if (pkiBox && data.pki) {
+    pkiBox.innerHTML = `<div class="mb-2"><strong>CSCA Root:</strong> <span class="badge-pill-soft" style="background:#f1f5f9;color:#475569;">${data.pki.csca_root}</span></div><div class="mb-2"><strong>Status:</strong> <span class="badge-pill-soft" style="background:${data.pki.signature_verified?'#f0fdf4':'#eff6ff'};color:${data.pki.signature_verified?'#16a34a':'#2563eb'};">${data.pki.pki_status}</span></div><div class="small text-muted">Passive authentication verified against ICAO Doc 9303 Part 10/11/12.</div>`;
+  }
+
+  // MRZ
+  const mrzBox = document.getElementById('deskMrzLinesBox');
+  if (mrzBox) mrzBox.innerHTML = (data.ocr?.mrz_lines?.length) ? data.ocr.mrz_lines.map(l=>`<div>${l}</div>`).join('') : '-- NO MRZ DETECTED --';
+  const mrzValBox = document.getElementById('deskMrzValidationBox');
+  if (mrzValBox) {
+    if (data.ocr?.mrz_lines?.length) {
+      if (bad) {
+        const discs = (data.cross_check?.discrepancies?.length) ? data.cross_check.discrepancies.map(d=>`<li class="mt-1"><strong>${d}</strong></li>`).join('') : '<li>MRZ data contradicts VIZ.</li>';
+        mrzValBox.innerHTML = `<div class="alert alert-danger d-flex align-items-start gap-3 mb-3 p-3" style="background:#fef2f2;border:1.5px solid #f87171;border-radius:10px;color:#991b1b;"><i class="fa-solid fa-triangle-exclamation fs-3 text-danger mt-1"></i><div><h6 class="fw-bold mb-1 text-danger">CRITICAL FORGERY: MRZ SWAPPED / TAMPERED</h6><ul class="mb-0 ps-3" style="font-size:.82rem;color:#991b1b;">${discs}</ul></div></div><div class="d-flex flex-wrap gap-2"><span class="badge-pill-soft" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;">VIZ vs MRZ: FORGERY</span><span class="badge-pill-soft" style="background:#fef3c7;color:#d97706;border:1px solid #fde68a;">Harvested Strip: Math OK</span></div>`;
+      } else if (data.ocr.mrz_all_ok) {
+        mrzValBox.innerHTML = '<div class="fw-bold mb-2 text-success"><i class="fa-solid fa-circle-check me-2"></i>All ICAO Check Digits Verified (7-3-1 Modulus 10).</div><div class="d-flex flex-wrap gap-2"><span class="badge-pill-soft" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;"><i class="fa-solid fa-check me-1"></i>Doc No. Checksum: VALID</span><span class="badge-pill-soft" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;"><i class="fa-solid fa-check me-1"></i>DOB Checksum: VALID</span><span class="badge-pill-soft" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;"><i class="fa-solid fa-check me-1"></i>Expiry Checksum: VALID</span><span class="badge-pill-soft" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;"><i class="fa-solid fa-check me-1"></i>Composite: VALID</span></div>';
+      } else {
+        mrzValBox.innerHTML = '<div class="text-danger fw-bold mb-2"><i class="fa-solid fa-circle-xmark me-2"></i>MRZ Checksum Failures:</div>' + (data.ocr.mrz_failures||[]).map(f=>`<div class="badge-pill-soft me-1" style="background:#fee2e2;color:#dc2626;">${f}</div>`).join('');
+      }
+    } else {
+      mrzValBox.innerHTML = '<div class="small text-muted">Standard card / non-MRZ document format.</div>';
+    }
+  }
+
+  // Forensics
+  const tBadge = document.getElementById('deskTamperStatusBadge');
+  if (tBadge) { if (data.tampering?.is_tampered) { tBadge.style = 'background:#fee2e2;color:#dc2626;border:1px solid #fecaca;'; tBadge.textContent = 'TAMPERING DETECTED'; } else { tBadge.style = 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;'; tBadge.textContent = 'CLEAN / NO TAMPERING'; } }
+  const hm = data.tampering?.heatmaps||{};
+  if (hm.ela) document.getElementById('deskHeatmapEla').src = `/media/${hm.ela}?t=${Date.now()}`;
+  if (hm.variance) document.getElementById('deskHeatmapVariance').src = `/media/${hm.variance}?t=${Date.now()}`;
+  if (hm.photo_splice) document.getElementById('deskHeatmapSplice').src = `/media/${hm.photo_splice}?t=${Date.now()}`;
+  const sc = document.getElementById('deskHeatmapStampCol');
+  if (hm.stamp) { document.getElementById('deskHeatmapStamp').src = `/media/${hm.stamp}?t=${Date.now()}`; if(sc) sc.style.display=''; }
+  else { if(sc) sc.style.display='none'; }
+  const tDetail = document.getElementById('deskTamperDetailsBox');
+  if (tDetail) tDetail.innerHTML = (data.tampering?.reasons?.length) ? '<div class="text-warning fw-bold mb-1">Forensic Anomalies:</div>' + data.tampering.reasons.map(r=>`<div class="small text-danger">• ${r}</div>`).join('') : '<div class="small text-success"><i class="fa-solid fa-check me-1"></i>No solid-fill patches, compression anomalies, or splice seams detected.</div>';
+
+  // Face
+  if (data.doc_filename) document.getElementById('deskFaceDocImg').src = `/media/${data.doc_filename}?t=${Date.now()}`;
+  if (data.live_filename) document.getElementById('deskFaceLiveImg').src = `/media/${data.live_filename}?t=${Date.now()}`;
+  const matchScore = (data.face?.similarity_score) ? (data.face.similarity_score*100).toFixed(1) : '0.0';
+  setEl('deskFaceMatchScore', (data.face?.live_provided) ? `${matchScore}%` : 'N/A');
+  const mb = document.getElementById('deskFaceMatchBadge');
+  const eb = document.getElementById('deskFaceEngineBadge');
+  if (mb && data.face?.live_provided) {
+    if (data.face.matched) { mb.style='background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;'; mb.textContent='BIOMETRIC MATCH'; }
+    else { mb.style='background:#fef2f2;color:#dc2626;border:1px solid #fecaca;'; mb.textContent='MISMATCH — DIFFERENT PERSON'; }
+  }
+  if (eb && data.face?.live_provided) { const isSface = (data.face.engine_used||'').includes('sface'); eb.style = isSface ? 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;' : 'background:#fffbeb;color:#d97706;border:1px solid #fde68a;'; eb.textContent = isSface ? 'SFace Neural Engine' : 'Histogram Fallback'; }
+  const galBox = document.getElementById('deskGalleryAlertBox');
+  if (galBox) galBox.innerHTML = (data.gallery?.multi_identity_flag) ? `<div class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i>IMPERSONATION DETECTED:</div><div class="small text-danger">${data.gallery.alert_message}</div>` : '<div class="small text-success"><i class="fa-solid fa-circle-check me-1"></i>No duplicate identity or facial conflict found.</div>';
+
+  // Watchlist
+  const wb = document.getElementById('deskWatchlistContentBox');
+  if (wb) wb.innerHTML = (data.blacklist?.is_flagged) ? `<div class="text-danger fw-bold"><i class="fa-solid fa-ban me-2"></i>CRITICAL WATCHLIST HIT:</div><div class="text-danger small mt-1">${data.blacklist.summary}</div>` : '<div class="text-success"><i class="fa-solid fa-check-circle me-2"></i>Document and Traveler Name CLEAR of all Indian BOI, CBI &amp; Interpol watchlists.</div>';
+}
+
+async function submitDeskRegister() {
+  const payload = { doc_type: document.getElementById('deskRegDocType').value, doc_number: document.getElementById('deskRegDocNum').value.trim().toUpperCase(), full_name: document.getElementById('deskRegFullName').value.trim().toUpperCase(), dob: document.getElementById('deskRegDob').value, expiry_date: document.getElementById('deskRegExpiry').value, gender: document.getElementById('deskRegGender').value, status: 'ACTIVE' };
+  if (!payload.doc_number) { showToast('⚠️ Document number required'); return; }
+  try {
+    const res = await fetch('/api/db/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.success) { bootstrap.Modal.getInstance(document.getElementById('deskRegisterModal'))?.hide(); showToast(`✅ ${data.message}`); }
+    else showToast(`❌ ${data.error||'Failed'}`);
+  } catch(e) { showToast(`❌ ${e.message}`); }
+}
+
+/* ================================================================
+   MOBILE — Accordion, Tab Switch, Camera, Render
+================================================================ */
+function initMobAccordions() {
+  document.querySelectorAll('.m-card-head:not(.open)').forEach(h => {
+    const b = h.nextElementSibling; if (b?.classList.contains('m-card-body')) b.style.display = 'none';
+  });
+}
+
+function mobToggle(h) {
+  const b = h.nextElementSibling;
+  if (!b || !b.classList.contains('m-card-body')) return;
+  const open = h.classList.contains('open');
+  if (open) { h.classList.remove('open'); b.style.display = 'none'; }
+  else       { h.classList.add('open');    b.style.display = ''; }
+}
+
+function mobSwitchTab(name, btn) {
+  document.querySelectorAll('.mob-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
+  const p = document.getElementById('mob-' + name); if (p) p.classList.add('active');
+  if (btn?.classList?.contains('mob-tab')) btn.classList.add('active');
+  document.querySelector('.mob-content').scrollTop = 0;
+}
+
+function mobCam(inputId, facing) {
+  const inp = document.getElementById(inputId);
+  inp.setAttribute('capture', facing); inp.click();
+}
+
+function bindMobPreview(inputId, prevId, zoneId) {
+  document.getElementById(inputId)?.addEventListener('change', function() {
+    const f = this.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = e => { const prev = document.getElementById(prevId); const zone = document.getElementById(zoneId); if (prev) { prev.src = e.target.result; prev.style.display='block'; } if (zone) zone.classList.add('filled'); };
+    reader.readAsDataURL(f);
+  });
+}
+bindMobPreview('mobDocFile','mobDocPrev','mobDocZone');
+bindMobPreview('mobLiveFile','mobLivePrev','mobLiveZone');
+
+async function mobSubmit() {
+  const docFile = document.getElementById('mobDocFile').files[0];
+  if (!docFile) { showToast('⚠️ Please select a document image first'); return; }
+  const btn = document.getElementById('mobBtnSubmit');
+  btn.disabled = true; setLoading(true);
+  try {
+    const fd = new FormData();
+    fd.append('doc_file', docFile);
+    fd.append('doc_type', document.getElementById('mobDocType').value);
+    const lf = document.getElementById('mobLiveFile').files[0];
+    if (lf) fd.append('live_file', lf);
+    const res = await fetch('/api/upload_and_screen', { method:'POST', body: fd });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const data = await res.json(); lastReport = data;
+    renderMob(data, 'Uploaded Document');
+    mobSwitchTab('results', null);
+    if (navigator.vibrate) navigator.vibrate(data.verdict==='GREEN'?[50]:data.verdict==='YELLOW'?[50,50,50]:[100,50,100,50,100]);
+    showToast('✅ Screening complete');
+  } catch(e) { showToast(`❌ ${e.message}`); }
+  finally { setLoading(false); btn.disabled = false; }
+}
+
+function renderMob(data, src) {
+  const score = data.verdict === undefined ? 0 : (data.risk_score||0);
+  const verdict = data.verdict || 'GREEN';
+  const bad = isMrzBad(data);
+  const isExpired = (data.reasons||[]).some(r=>r.toUpperCase().includes('EXPIRED'));
+
+  // Verdict hero
+  const hero = document.getElementById('mobVerdictCard');
+  const arc  = document.getElementById('mobRiskArc');
+  if (hero) { hero.className = 'mob-verdict ' + verdict.toLowerCase(); }
+  if (arc)  { arc.style.strokeDashoffset = 170-(score/100)*170; arc.style.stroke = verdict==='GREEN'?'#16a34a':verdict==='YELLOW'?'#d97706':'#dc2626'; }
+  const setId = (id, v) => { const el = document.getElementById(id); if (el) el.innerHTML = v; };
+  setId('mobVIcon', verdict==='GREEN'?'🟢':verdict==='YELLOW'?'🟡':'🔴');
+  setId('mobVTitle', `[${verdict}] ${data.decision_text||verdict}`);
+  setId('mobVSub', `${src} · ${new Date().toLocaleTimeString('en-IN')}`);
+  setId('mobRiskNum', score);
+
+  const rt = document.getElementById('mobReasonTags');
+  if (rt) { if (data.reasons?.length) { rt.style.display='flex'; rt.innerHTML = data.reasons.map(r=>`<span class="mob-pill mp-red">${r}</span>`).join(''); } else rt.style.display='none'; }
+
+  // Chips
+  const ch = document.getElementById('mobChips'); if (ch) ch.style.display='flex';
+  setId('mc-exp', isExpired?'❌ EXPIRED':'✅ VALID');
+  setId('mc-mrz', bad?'⛔ FORGED':(data.ocr?.mrz_all_ok?'✅ OK':'—'));
+  setId('mc-for', data.tampering?.is_tampered?'⚠️ TAMPERED':'✅ CLEAN');
+  setId('mc-fce', data.face?.live_provided?(data.face.matched?'✅ MATCH':'❌ MISMATCH'):'—');
+  setId('mc-wtc', data.blacklist?.is_flagged?'🚨 HIT':'✅ CLEAR');
+
+  // VIZ
+  const vizBody = document.getElementById('mobVizTable');
+  if (vizBody) {
+    if (data.ocr?.fields && Object.keys(data.ocr.fields).length) {
+      let rows = '';
+      const conf = data.ocr.ocr_confidence != null ? Math.round(data.ocr.ocr_confidence*100) : null;
+      if (conf) rows += `<tr><td colspan="2" style="border:none;padding-bottom:7px;"><span class="mob-pill mp-blue"><i class="fa-solid fa-microscope me-1"></i>OCR: ${conf}%</span></td></tr>`;
+      for (const [k,v] of Object.entries(data.ocr.fields)) {
+        if (SKIP_FIELDS.has(k)||!v) continue;
+        const lbl = VIZ_LABELS[k]||k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        let dv = String(v);
+        if (dv.match(/^\d{4}-\d{2}-\d{2}/)) { try { dv = new Date(dv).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){} }
+        else if (k==='verhoeff_valid') dv = v?'<span class="mob-pill mp-green">VALID</span>':'<span class="mob-pill mp-red">INVALID</span>';
+        rows += `<tr><th>${lbl}</th><td>${dv}</td></tr>`;
+      }
+      vizBody.innerHTML = rows;
+    } else vizBody.innerHTML = '<tr><td colspan="2" style="border:none;text-align:center;padding:20px;color:#64748b;">⚠️ Could not extract fields.</td></tr>';
+  }
+
+  // MRZ
+  setId('mobMrzDisplay', data.ocr?.mrz_lines?.length ? data.ocr.mrz_lines.map(l=>`<div>${l}</div>`).join('') : '-- NO MRZ --');
+  if (bad) setId('mobMrzVal', `<div style="background:#fef2f2;border:1.5px solid #f87171;border-radius:11px;padding:12px;color:#991b1b;margin-top:8px;"><div style="font-weight:800;margin-bottom:5px;"><i class="fa-solid fa-ban me-1"></i>CRITICAL: MRZ SWAPPED</div><div style="font-size:.78rem;">${(data.cross_check?.discrepancies||['MRZ data does not match VIZ.']).join('<br>')}</div></div>`);
+  else if (data.ocr?.mrz_lines?.length) setId('mobMrzVal', data.ocr.mrz_all_ok ? '<span class="mob-pill mp-green mt-2"><i class="fa-solid fa-check me-1"></i>All Check Digits Valid (7-3-1)</span>' : `<span class="mob-pill mp-red">Checksums Failed: ${(data.ocr.mrz_failures||[]).join(', ')}</span>`);
+  else setId('mobMrzVal', '<div style="font-size:.78rem;color:#64748b;">Non-MRZ card format.</div>');
+
+  // Forensics
+  const tp = document.getElementById('mobTamperPill');
+  if (tp) { tp.className = data.tampering?.is_tampered ? 'mob-pill mp-red' : 'mob-pill mp-green'; tp.textContent = data.tampering?.is_tampered ? 'TAMPERED' : 'CLEAN'; }
+  const hm = data.tampering?.heatmaps||{};
+  if (hm.ela) document.getElementById('mobHmEla').src = `/media/${hm.ela}?t=${Date.now()}`;
+  if (hm.variance) document.getElementById('mobHmVar').src = `/media/${hm.variance}?t=${Date.now()}`;
+  if (hm.photo_splice) document.getElementById('mobHmSplice').src = `/media/${hm.photo_splice}?t=${Date.now()}`;
+  const sw = document.getElementById('mobHmStampWrap');
+  if (hm.stamp) { document.getElementById('mobHmStamp').src = `/media/${hm.stamp}?t=${Date.now()}`; if(sw) sw.style.display=''; } else if(sw) sw.style.display='none';
+  setId('mobTamperDetail', data.tampering?.reasons?.length ? '<div style="font-weight:700;color:#d97706;margin-bottom:5px;">Anomalies:</div>'+data.tampering.reasons.map(r=>`<div style="font-size:.79rem;color:#dc2626;margin-bottom:3px;">• ${r}</div>`).join('') : '<div style="font-size:.79rem;color:#16a34a;"><i class="fa-solid fa-check me-1"></i>No tampering detected.</div>');
+
+  // Face
+  if (data.doc_filename) document.getElementById('mobFaceDoc').src = `/media/${data.doc_filename}?t=${Date.now()}`;
+  if (data.live_filename) document.getElementById('mobFaceLive').src = `/media/${data.live_filename}?t=${Date.now()}`;
+  setId('mobFaceResult', data.face?.live_provided ? `<div class="mob-info-row"><span class="mob-ik">Similarity</span><span class="mob-iv">${(data.face.similarity_score*100).toFixed(1)}%</span></div><div class="mob-info-row"><span class="mob-ik">Status</span><span class="mob-iv">${data.face.matched?'<span class="mob-pill mp-green">MATCH</span>':'<span class="mob-pill mp-red">MISMATCH</span>'}</span></div>` : '<div style="font-size:.79rem;color:#64748b;">No live probe — document inspection only.</div>');
+  setId('mobGallery', data.gallery?.multi_identity_flag ? `<span class="mob-pill mp-red"><i class="fa-solid fa-triangle-exclamation me-1"></i>IMPERSONATION DETECTED</span><div style="font-size:.78rem;color:#dc2626;margin-top:5px;">${data.gallery.alert_message}</div>` : '<span class="mob-pill mp-green"><i class="fa-solid fa-circle-check me-1"></i>No Gallery Conflict</span>');
+  setId('mobDbResult', data.database?.record_found ? `<span class="mob-pill mp-green mb-2"><i class="fa-solid fa-circle-check me-1"></i>Found (${data.database.status_in_db})</span><div class="mob-info-row"><span class="mob-ik">DB Name</span><span class="mob-iv">${data.database.db_record?.full_name||'—'}</span></div>` : '<span class="mob-pill mp-yellow"><i class="fa-solid fa-triangle-exclamation me-1"></i>Unregistered Document</span>');
+  setId('mobPkiResult', data.pki ? `<div class="mob-info-row"><span class="mob-ik">CSCA Root</span><span class="mob-iv" style="font-size:.72rem;">${data.pki.csca_root}</span></div><div class="mob-info-row"><span class="mob-ik">Status</span><span class="mob-iv"><span class="mob-pill ${data.pki.signature_verified?'mp-green':'mp-blue'}">${data.pki.pki_status}</span></span></div>` : '<div style="font-size:.79rem;color:#64748b;">No PKI data.</div>');
+  setId('mobWatchlist', data.blacklist?.is_flagged ? `<span class="mob-pill mp-red"><i class="fa-solid fa-ban me-1"></i>WATCHLIST HIT</span><div style="font-size:.79rem;color:#dc2626;margin-top:7px;">${data.blacklist.summary}</div>` : '<span class="mob-pill mp-green"><i class="fa-solid fa-shield-check me-1"></i>CLEAR — No BOI / Interpol hit</span>');
+}
+
+async function mobDbQuery() {
+  const table = document.getElementById('mobDbTable').value;
+  const q     = document.getElementById('mobDbQ').value.trim();
+  const cont  = document.getElementById('mobDbResults');
+  cont.innerHTML = '<div class="m-card"><div class="m-card-body" style="border-top:none;text-align:center;color:#64748b;font-size:.82rem;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Querying…</div></div>';
+  try {
+    const res = await fetch(`/api/db/query?table=${table}&q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if (!data.records?.length) { cont.innerHTML = '<div class="m-card"><div class="m-card-body" style="border-top:none;text-align:center;color:#64748b;">No records found.</div></div>'; return; }
+    cont.innerHTML = data.records.map(rec => `<div class="m-card"><div style="padding:13px;">${Object.entries(rec).filter(([k,v])=>v!=null&&v!='').map(([k,v])=>`<div class="mob-info-row"><span class="mob-ik">${k.replace(/_/g,' ')}</span><span class="mob-iv">${v}</span></div>`).join('')}</div></div>`).join('');
+  } catch(e) { cont.innerHTML = `<div class="m-card"><div style="padding:13px;color:#dc2626;">Error: ${e.message}</div></div>`; }
+}
+
+/* ================================================================
+   SHARED: Register modal + Export
+================================================================ */
+function handleRegModalBg(e) { if (e.target===document.getElementById('registerModal')) document.getElementById('registerModal').classList.remove('open'); }
+
+async function submitRegister() {
+  const payload = { doc_type:document.getElementById('regDocType').value, doc_number:document.getElementById('regDocNum').value.trim().toUpperCase(), full_name:document.getElementById('regFullName').value.trim().toUpperCase(), dob:document.getElementById('regDob').value, expiry_date:document.getElementById('regExpiry').value, gender:document.getElementById('regGender').value, status:'ACTIVE' };
+  if (!payload.doc_number) { showToast('⚠️ Document number required'); return; }
+  try {
+    const res = await fetch('/api/db/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.success) { document.getElementById('registerModal').classList.remove('open'); showToast(`✅ ${data.message}`); }
+    else showToast(`❌ ${data.error||'Failed'}`);
+  } catch(e) { showToast(`❌ ${e.message}`); }
+}
+
+function exportDossier() {
+  if (!lastReport) { showToast('⚠️ No screening result to export'); return; }
+  const blob = new Blob([JSON.stringify(lastReport,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `docscreen_audit_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+  a.click(); showToast('📄 Audit dossier exported');
+}
+document.getElementById('mobBtnExport')?.addEventListener('click', exportDossier);
+document.getElementById('mobBtnExportSettings')?.addEventListener('click', exportDossier);
+</script>
+</body>
+</html>

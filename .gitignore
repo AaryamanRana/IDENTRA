@@ -1,0 +1,28 @@
+# Virtual environments
+.venv/
+.venv_mac/
+venv/
+ENV/
+env/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# macOS metadata
+.DS_Store
+__MACOSX/
+._*
+
+# Temporary outputs & test scratch
+output/*
+!output/.gitkeep
+scratch/
+
+# Local databases
+*.db
+*.sqlite3
