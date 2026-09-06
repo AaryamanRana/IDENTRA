@@ -59,6 +59,7 @@ def create_app():
         __name__,
         template_folder=str(BASE_DIR / "ui" / "templates"),
         static_folder=str(BASE_DIR / "ui" / "static"),
+        static_url_path="/static",
     )
     app.config["UPLOAD_FOLDER"] = str(UPLOAD_DIR)
     app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32MB max
